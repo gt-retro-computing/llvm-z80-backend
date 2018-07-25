@@ -1,0 +1,72 @@
+= Instruction Lowering =
+Michael Stellmann <michael.stellmann@gmx.net>
+v0.1, July 2018
+
+:numbered:
+== Instructions ==
+=== Load immediate imm8 -> r8 - Z80ISD::L8RI ===
+
+[horizontal]
+*r8*:: A, H, L, B, C, D, E
+
+[float]
+==== Emitted code ====
+
+* if any other reg8 == imm8:
+
+	LD	r8,reg8
+
+* else
+  ** if imm8 == 0 && r8 == A
+
+	XOR A
+
+  ** else (imm8 != 0)
+
+	LD	r8,imm8
+
+
+=== Load immediate imm16 -> r16 - Z80ISD::L16RI ===
+
+[horizontal]
+*r16*:: HL, DE, BC
+*r8*:: A, H, L, B, C, D, E
+
+[float]
+==== Emitted code ====
+* Low
+
+ ** if any other reg8 == imm16l && any other reg8 == imm16h:
+
+	L8RI	r16l,imm16l
+	L8RI	r16h,imm16h
+
+ ** else
+
+	LD	r16,imm16
+
+
+=== Zero-extend r8 / imm8 -> r16 - ISD::ZEXT ===
+[horizontal]
+*r16*:: HL, BC, DE
+*r8*:: A, H, L, B, C, D, E
+
+[float]
+==== Emitted code ====
+
+* Low
+ ** if r16l != r8
+
+	LD	r16l,r8 / L8RI	r16l,imm8
+
+ ** else do nothing
+
+* High
+
+	L8RI	r16h,0
+
+
+
+== Questions ==
+- Is it possible to check if any other physical register has a specific immediate value when we emit an instruction during lowering? In runOnMachineFunction?
+- It is possible to do this in a peephole optimizer pass?

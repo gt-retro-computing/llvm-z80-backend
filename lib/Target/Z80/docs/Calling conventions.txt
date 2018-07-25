@@ -1,0 +1,134 @@
+= ABI Description =
+Michael Stellmann <michael.stellmann@gmx.net>
+v0.1, July 2018
+
+:numbered:
+== Introduction ==
+
+This document describes the ABI (application binary interface) and calling conventions used by the LLVM backend for the Z80.
+
+Line 1 +
+Line 2
+
+== Calling conventions ==
+
+=== Parameter passing ===
+
+IAR / HITECH-C:
+[width="75%"]
+|=======
+2+^|1 2+^|2 2+|Remaining parameters
+|8-bit +
+E| 16-bit +
+DE| 8-bit +
+C| 16-bit +
+BC 2+|Pushed on stack
+2+|Long +
+BCDE 2+|Pushed on stack 2+|Pushed on stack
+2+|Vararg +
+Pushed on stack 2+|Pushed on stack 2+|Pushed on stack
+|=======
+
+ACSII-C:
+|=======
+2+^|1 2+^|2 2+^|3 2+|Remaining parameters
+|8-bit +
+A| 16-bit +
+HL| 8-bit +
+E| 16-bit +
+DE| 8-bit +
+C| 16-bit +
+BC 2+|Pushed on stack
+2+|Vararg +
+Pushed on stack 2+|Pushed on stack 2+|Pushed on stack 2+|Pushed on stack
+|=======
+
+=== Return values ===
+
+IAR (HITECH-C?):
+[width="50%"]
+|=======
+|Type|Register
+|8-bit|A
+|16-bit|HL
+|32-bit|BCHL
+|=======
+
+ASCII-C:
+[width="50%"]
+|=======
+|Type|Register
+|8-bit|A
+|16-bit|HL
+|=======
+
+
+== Stack Frame Setup ==
+
+[width="25%",cols="^"]
+|=======
+|Function call parameters
+|Return address
+|Saved registers
+|Location of first parameter
+|Auto variables
+|Temporary storage
+|=======
+
+
+
+== Function Prologue / Epilogue ==
+
+=== IAR ===
+==== Call ====
+----
+	call	?ENT_AUTO_DIRECT_L09
+	defw	<auto-variables-size>
+... function body
+	jp	?LEAVE_DIRECT_L09
+----
+
+==== Prologue ====
+
+Without auto variables
+----
+?ENT_PARM_DIRECT_L09 ; 14 bytes, 96 cycles
+	pop	hl	; return address (to function entry)
+	push	bc	; save param to stack (IX+4/5)
+	push	de	; save param to stack (IX+2/3)
+	push	ix
+	ld	ix,0
+	add	ix,sp
+	jp	(hl)
+----
+
+With auto variables
+----
+?ENT_AUTO_DIRECT_L09 ; 22 bytes, 149 cycles
+	pop	hl	; return address (to function entry)
+	push	bc	; save param to stack (IX+4/5)
+	push	de	; save param to stack (IX+2/3)
+	push	ix
+	ld	ix,0
+	add	ix,sp
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc hl
+	ex	de,hl
+	add	hl,sp
+	ld	sp,hl
+	ex	de,hl
+	jp	(hl)
+----
+
+
+==== Epilogue ====
+----
+?LEAVE_DIRECT_L09:	; 7 bytes, 61 cyc - must be jumped to
+	ld	sp,ix
+	pop	ix
+	pop	de
+	pop	bc
+	ret
+----

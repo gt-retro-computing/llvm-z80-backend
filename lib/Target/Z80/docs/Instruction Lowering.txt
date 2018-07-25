@@ -1,0 +1,40 @@
+= Instruction Lowering =
+Michael Stellmann <michael.stellmann@gmx.net>
+v0.1, July 2018
+
+:numbered:
+== Instructions ==
+=== Load immediate imm8 -> r8 - Z80ISD::L8RI ===
+
+[horizontal]
+*r8*:: A, H, L, B, C, D, E
+
+[float]
+==== Emitted code ====
+
+	LD	r8,imm8
+
+=== Load immediate imm16 -> r16 - Z80ISD::L16RI ===
+
+[horizontal]
+*r16*:: HL, DE, BC
+*r8*:: A, H, L, B, C, D, E
+
+[float]
+==== Emitted code ====
+
+	LD	r16,imm16
+
+=== Zero-extend r8 / imm8 -> r16 - ISD::ZEXT ===
+[horizontal]
+*r16*:: HL, BC, DE
+
+[float]
+==== Emitted code ====
+
+	LD	R16l,r8 / imm8
+	LD	R16h,0
+
+
+== Questions ==
+- How to check if any other physical register has a specific immediate value when we insert an instruction?
