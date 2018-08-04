@@ -82,10 +82,10 @@ public:
   }
 
 private:
-  void ExpandCmp(MachineInstr &MI, MachineBasicBlock &MBB);
-  void ExpandCmp0(MachineInstr &MI, MachineBasicBlock &MBB);
-  bool ExpandMI(MachineBasicBlock::iterator &MI, MachineBasicBlock &MBB);
-  bool ExpandMBB(MachineBasicBlock &MBB);
+//  void ExpandCmp(MachineInstr &MI, MachineBasicBlock &MBB);
+//  void ExpandCmp0(MachineInstr &MI, MachineBasicBlock &MBB);
+//  bool ExpandMI(MachineBasicBlock::iterator &MI, MachineBasicBlock &MBB);
+//  bool ExpandMBB(MachineBasicBlock &MBB);
 
   const TargetInstrInfo *TII;
   static char ID;
@@ -98,65 +98,65 @@ FunctionPass *llvm::createZ80ExpandPseudoPass() {
   return new Z80ExpandPseudo();
 }
 
-void Z80ExpandPseudo::ExpandCmp(MachineInstr &MI, MachineBasicBlock &MBB) {
-  bool Is24Bit = false; // MI.getOpcode() == Z80::CP24ao;
-  assert((Is24Bit || MI.getOpcode() == Z80::CP16ao) && "Unexpected opcode");
-  DebugLoc DL = MI.getDebugLoc();
-  dbgs() << "Z80ExpandPseudo::ExpandCmp";
-  MI.dump();
-  //BuildMI(MBB, MI, DL, TII->get(Z80::RCF));
-  //BuildMI(MBB, MI, DL, TII->get(Is24Bit ? Z80::SBC24ar : Z80::SBC16ar))
-  //  .addReg(MI.getOperand(0).getReg());
-  //BuildMI(MBB, MI, DL, TII->get(Is24Bit ? Z80::ADD24ao : Z80::ADD16ao),
-  //        Is24Bit ? Z80::UHL : Z80::HL).addReg(Is24Bit ? Z80::UHL : Z80::HL)
-  //  .addReg(MI.getOperand(0).getReg());
-}
-void Z80ExpandPseudo::ExpandCmp0(MachineInstr &MI, MachineBasicBlock &MBB) {
-  bool Is24Bit = false; // MI.getOpcode() == Z80::CP24a0;
-  assert((Is24Bit || MI.getOpcode() == Z80::CP16a0) && "Unexpected opcode");
-  DebugLoc DL = MI.getDebugLoc();
-  dbgs() << "Z80ExpandPseudo::ExpandCmp";
-  MI.dump();
-  //BuildMI(MBB, MI, DL, TII->get(Is24Bit ? Z80::ADD24ao : Z80::ADD16ao),
-  //        Is24Bit ? Z80::UHL : Z80::HL).addReg(Is24Bit ? Z80::UHL : Z80::HL)
-  //  .addReg(MI.getOperand(0).getReg());
-  //BuildMI(MBB, MI, DL, TII->get(Z80::RCF));
-  //BuildMI(MBB, MI, DL, TII->get(Is24Bit ? Z80::SBC24ar : Z80::SBC16ar))
-  //  .addReg(MI.getOperand(0).getReg());
-}
-
-bool Z80ExpandPseudo::ExpandMI(MachineBasicBlock::iterator &MI,
-                               MachineBasicBlock &MBB) {
-  switch (MI->getOpcode()) {
-  default: return false;
-  case Z80::CP16ao:
-    //case Z80::CP24ao:
-    ExpandCmp(*MI, MBB);
-    break;
-  case Z80::CP16a0:
-    //case Z80::CP24a0:
-    ExpandCmp0(*MI, MBB);
-    break;
-  }
-  return false;
-  MI = MBB.erase(MI);
-  return true;
-}
-
-bool Z80ExpandPseudo::ExpandMBB(MachineBasicBlock &MBB) {
-  bool Modified = false;
-  for (auto I = MBB.begin(), E = MBB.end(); I != E; ++I) {
-    Modified |= ExpandMI(I, MBB);
-  }
-  return Modified;
-}
+//void Z80ExpandPseudo::ExpandCmp(MachineInstr &MI, MachineBasicBlock &MBB) {
+//  bool Is24Bit = false; // MI.getOpcode() == Z80::CP24ao;
+//  assert((Is24Bit || MI.getOpcode() == Z80::CP16ao) && "Unexpected opcode");
+//  DebugLoc DL = MI.getDebugLoc();
+//  dbgs() << "Z80ExpandPseudo::ExpandCmp";
+//  MI.dump();
+//  //BuildMI(MBB, MI, DL, TII->get(Z80::RCF));
+//  //BuildMI(MBB, MI, DL, TII->get(Is24Bit ? Z80::SBC24ar : Z80::SBC16ar))
+//  //  .addReg(MI.getOperand(0).getReg());
+//  //BuildMI(MBB, MI, DL, TII->get(Is24Bit ? Z80::ADD24ao : Z80::ADD16ao),
+//  //        Is24Bit ? Z80::UHL : Z80::HL).addReg(Is24Bit ? Z80::UHL : Z80::HL)
+//  //  .addReg(MI.getOperand(0).getReg());
+//}
+//void Z80ExpandPseudo::ExpandCmp0(MachineInstr &MI, MachineBasicBlock &MBB) {
+//  bool Is24Bit = false; // MI.getOpcode() == Z80::CP24a0;
+//  assert((Is24Bit || MI.getOpcode() == Z80::CP16a0) && "Unexpected opcode");
+//  DebugLoc DL = MI.getDebugLoc();
+//  dbgs() << "Z80ExpandPseudo::ExpandCmp";
+//  MI.dump();
+//  //BuildMI(MBB, MI, DL, TII->get(Is24Bit ? Z80::ADD24ao : Z80::ADD16ao),
+//  //        Is24Bit ? Z80::UHL : Z80::HL).addReg(Is24Bit ? Z80::UHL : Z80::HL)
+//  //  .addReg(MI.getOperand(0).getReg());
+//  //BuildMI(MBB, MI, DL, TII->get(Z80::RCF));
+//  //BuildMI(MBB, MI, DL, TII->get(Is24Bit ? Z80::SBC24ar : Z80::SBC16ar))
+//  //  .addReg(MI.getOperand(0).getReg());
+//}
+//
+//bool Z80ExpandPseudo::ExpandMI(MachineBasicBlock::iterator &MI,
+//                               MachineBasicBlock &MBB) {
+//  switch (MI->getOpcode()) {
+//  default: return false;
+//  case Z80::CP16ao:
+//    //case Z80::CP24ao:
+//    ExpandCmp(*MI, MBB);
+//    break;
+//  case Z80::CP16a0:
+//    //case Z80::CP24a0:
+//    ExpandCmp0(*MI, MBB);
+//    break;
+//  }
+//  return false;
+//  MI = MBB.erase(MI);
+//  return true;
+//}
+//
+//bool Z80ExpandPseudo::ExpandMBB(MachineBasicBlock &MBB) {
+//  bool Modified = false;
+//  for (auto I = MBB.begin(), E = MBB.end(); I != E; ++I) {
+//    Modified |= ExpandMI(I, MBB);
+//  }
+//  return Modified;
+//}
 
 bool Z80ExpandPseudo::runOnMachineFunction(MachineFunction &MF) {
   getAnalysis<LiveIntervals>().addKillFlags(&getAnalysis<VirtRegMap>());
   TII = MF.getSubtarget().getInstrInfo();
   bool Modified = false;
-  for (auto &MBB : MF) {
-    Modified |= ExpandMBB(MBB);
-  }
+//  for (auto &MBB : MF) {
+//    Modified |= ExpandMBB(MBB);
+//  }
   return Modified;
 }

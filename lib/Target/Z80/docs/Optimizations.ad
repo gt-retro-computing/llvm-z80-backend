@@ -65,3 +65,69 @@ with building up the stack step by step (if possible)
 
 	ld	de,4567	; initialized param
 	push	de
+
+
+----------------------------------------------------------------------------
+
+- Optimize loading of two 8 bit constants into a register pair:
+
+- Setting up stack-frame index requires all parameters to be moved from registers to stack.
+
+  ld l,n   ->   ld hl,mn
+  ld h,m
+
+- Allow loading of immediates to IX+n
+  (e.g. ld (ix+3),123 instead of "ld a,123 / ld (ix+3),a"
+
+
+- Access to local (stack) objects:
+  - For elements inside the IX range (+127..-128):
+    (IX-n)
+  - For elements outside:
+    ld hl,n
+	add hl,sp
+	ld (hl),...
+
+Function prologue:
+IAR:
+?ENT_AUTO_DIRECT_L09 ; 21 bytes, 142 cyc - must be jumped to
+	pop	hl ; return address
+	push bc ; param to stack (IX+4/5)
+	push de ; param to stack (IX+2/3)
+	push ix
+	id ix,0
+	add ix,sp
+	ld e,(hl)
+	inc hl
+	ld d,(hl)
+	ex de,hl
+	add hl,sp
+	ld sp,hl
+	ex de,hl
+	jp (hl)
+
+?LEAVE_DIRECT_L09: ; 7 bytes, 61 cyc - must be jumped to
+	ld sp,ix
+	pop ix
+	pop de
+	pop bc
+	ret
+
+LLVM:
+epilogue:
+	; should push hl first and mark it as destroyed (or moved to mem)
+	;   epilogue must adjust for that (hl) - via setStackSize(getStackSize+2)?
+
+	push	ix	; 13 bytes, 80 cyc
+	ld	ix, 0
+	add	ix, sp
+	ld	hl, -9
+	add	hl, sp
+	ld	sp, hl
+
+
+
+
+prologue:
+	ld	sp, ix ; 4 bytes, 28 cyc
+	pop	ix

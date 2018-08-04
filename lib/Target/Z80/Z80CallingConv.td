@@ -21,9 +21,9 @@ def CC_Z80_C : CallingConv<[
 
   // The first 3 integer arguments, if the call is not
   // a vararg call, are passed in integer registers.
-  //CCIfNotVarArg<CCIfType<[i8], CCAssignToReg<[A, E, C]>>>,
+  CCIfNotVarArg<CCIfType<[i8], CCAssignToReg<[A, E, C]>>>,
   //CCIfNotVarArg<CCIfType<[i8], CCAssignToReg<[H, L, E, C]>>>,
-  //CCIfNotVarArg<CCIfType<[i16], CCAssignToReg<[HL, DE, BC]>>>,
+  CCIfNotVarArg<CCIfType<[i16], CCAssignToReg<[HL, DE, BC]>>>,
 
   CCIfType<[i8, i16], CCAssignToStack<2, 1>>
 //  CCIfType<[i32, f32], CCAssignToStack<4, 1>>,

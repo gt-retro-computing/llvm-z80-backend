@@ -57,77 +57,84 @@ class Z80Inst<Prefix prefix, bits<8> opcode, ImmInfo imm, bits<2> immSize,
   let isCodeGenOnly = 1;
 }
 
-let isPseudo = 1 in
-class Pseudo<string mnemonic, string arguments = "", string constraints = "",
-             dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
-  : Z80Inst<NoPre,       0,     NoImm, 0, outputs, inputs, pattern,
-            !strconcat(mnemonic,            arguments), constraints>;
-
+//let isPseudo = 1 in
+//class Pseudo<string mnemonic, string arguments = "", string constraints = "",
+//             dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
+//  : Z80Inst<NoPre,       0,     NoImm, 0, outputs, inputs, pattern,
+//            !strconcat(mnemonic,            arguments), constraints>;
+//
 class Inst  <Prefix prefix, bits<8> opcode, ImmInfo immediate,
              string mnemonic, string arguments = "", string constraints = "",
              dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
   : Z80Inst<prefix, opcode, immediate, 0, outputs, inputs, pattern,
             !strconcat(mnemonic,            arguments), constraints>;
+
 class Inst8 <Prefix prefix, bits<8> opcode, ImmInfo immediate,
              string mnemonic, string arguments = "", string constraints = "",
              dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
   : Z80Inst<prefix, opcode, immediate, 1, outputs, inputs, pattern,
             !strconcat(mnemonic,            arguments), constraints>;
-class Inst16<Prefix prefix, bits<8> opcode, ImmInfo immediate,
-             string mnemonic, string arguments = "", string constraints = "",
-             dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
-  : Z80Inst<prefix, opcode, immediate, 2, outputs, inputs, pattern,
-            !strconcat(mnemonic, "{|.sis}", arguments), constraints>;
+
+//class Inst16<Prefix prefix, bits<8> opcode, ImmInfo immediate,
+//             string mnemonic, string arguments = "", string constraints = "",
+//             dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
+//  : Z80Inst<prefix, opcode, immediate, 2, outputs, inputs, pattern,
+//            !strconcat(mnemonic, "{|.sis}", arguments), constraints>;
+//
 
 class I    <Prefix prefix, bits<8> opcode,
             string mnemonic, string arguments = "", string constraints = "",
             dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
   : Inst  <prefix, opcode,  NoImm, mnemonic, arguments, constraints,
            outputs, inputs, pattern>;
-class Ii   <Prefix prefix, bits<8> opcode,
-            string mnemonic, string arguments = "", string constraints = "",
-            dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
-  : Inst  <prefix, opcode,    Imm, mnemonic, arguments, constraints,
-           outputs, inputs, pattern>;
 
-class I8   <Prefix prefix, bits<8> opcode,
-            string mnemonic, string arguments = "", string constraints = "",
-            dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
-  : Inst8 <prefix, opcode,  NoImm, mnemonic, arguments, constraints,
-           outputs, inputs, pattern>;
+//class Ii   <Prefix prefix, bits<8> opcode,
+//            string mnemonic, string arguments = "", string constraints = "",
+//            dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
+//  : Inst  <prefix, opcode,    Imm, mnemonic, arguments, constraints,
+//           outputs, inputs, pattern>;
+//
+//class I8   <Prefix prefix, bits<8> opcode,
+//            string mnemonic, string arguments = "", string constraints = "",
+//            dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
+//  : Inst8 <prefix, opcode,  NoImm, mnemonic, arguments, constraints,
+//           outputs, inputs, pattern>;
+
 class I8i  <Prefix prefix, bits<8> opcode,
             string mnemonic, string arguments = "", string constraints = "",
             dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
   : Inst8 <prefix, opcode,    Imm, mnemonic, arguments, constraints,
            outputs, inputs, pattern>;
-class I8o  <Prefix prefix, bits<8> opcode,
-            string mnemonic, string arguments = "", string constraints = "",
-            dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
-  : Inst8 <prefix, opcode, Off   , mnemonic, arguments, constraints,
-           outputs, inputs, pattern>;
-class I8oi <Prefix prefix, bits<8> opcode,
-            string mnemonic, string arguments = "", string constraints = "",
-            dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
-  : Inst8 <prefix, opcode, OffImm, mnemonic, arguments, constraints,
-           outputs, inputs, pattern>;
 
-class I16  <Prefix prefix, bits<8> opcode,
-            string mnemonic, string arguments = "", string constraints = "",
-            dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
-  : Inst16<prefix, opcode,  NoImm, mnemonic, arguments, constraints,
-           outputs, inputs, pattern>;
-class I16i <Prefix prefix, bits<8> opcode,
-            string mnemonic, string arguments = "", string constraints = "",
-            dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
-  : Inst16<prefix, opcode,    Imm, mnemonic, arguments, constraints,
-           outputs, inputs, pattern>;
-class I16o <Prefix prefix, bits<8> opcode,
-            string mnemonic, string arguments = "", string constraints = "",
-            dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
-  : Inst16<prefix, opcode, Off   , mnemonic, arguments, constraints,
-           outputs, inputs, pattern>;
-
-class P<dag outs = (outs), dag ins = (ins), list<dag> pattern = []>
+//class I8o  <Prefix prefix, bits<8> opcode,
+//            string mnemonic, string arguments = "", string constraints = "",
+//            dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
+//  : Inst8 <prefix, opcode, Off   , mnemonic, arguments, constraints,
+//           outputs, inputs, pattern>;
+//class I8oi <Prefix prefix, bits<8> opcode,
+//            string mnemonic, string arguments = "", string constraints = "",
+//            dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
+//  : Inst8 <prefix, opcode, OffImm, mnemonic, arguments, constraints,
+//           outputs, inputs, pattern>;
+//
+//class I16  <Prefix prefix, bits<8> opcode,
+//            string mnemonic, string arguments = "", string constraints = "",
+//            dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
+//  : Inst16<prefix, opcode,  NoImm, mnemonic, arguments, constraints,
+//           outputs, inputs, pattern>;
+//class I16i <Prefix prefix, bits<8> opcode,
+//            string mnemonic, string arguments = "", string constraints = "",
+//            dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
+//  : Inst16<prefix, opcode,    Imm, mnemonic, arguments, constraints,
+//           outputs, inputs, pattern>;
+//class I16o <Prefix prefix, bits<8> opcode,
+//            string mnemonic, string arguments = "", string constraints = "",
+//            dag outputs = (outs), dag inputs = (ins), list<dag> pattern = []>
+//  : Inst16<prefix, opcode, Off   , mnemonic, arguments, constraints,
+//           outputs, inputs, pattern>;
+//
+class PseudoI<dag outs = (outs), dag ins = (ins), list<dag> pattern = []>
   : Z80Inst<NoPre, 0, NoImm, 0, outs, ins, pattern> {
   let isPseudo = 1;
 }
+

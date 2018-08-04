@@ -1,0 +1,46 @@
+= Various information
+
+== Call Frame Setup Opcode
+This opcode will be inserted as a 'MachineInstruction' (MI) in 'MachineBasicBlock' s (MBB) of 'MachineFunction' s (MF) to indicate the generation of a call frame setup / destruction.
+
+The opcode is set-up in the constructor of xxxInstrInfo.cpp, forwarding it to 'TargetInstrInfo', and is 'xxx::ADJCALLSTACKDOWNnn' for setup and 'xxx::ADJCALLSTACKUPnn' for destruction.
+
+It can be acquired from 'TargetInstructionInfo' (TII) via
+
+  unsigned FrameSetupOpcode = TII->getCallFrameSetupOpcode();
+
+== Use of ADDCARRY
+According to docs, ADDCARRY should be used in favor of ADDC, which might be deprecated in the future. 
+
+ADDCARRY takes three operands: RHS, LHS, boolean indicating incoming carry.
+ADDCARRY produce two results: add/sub result + output carry, so they can be chained together(?)
+The carry being a regular value (instead of glue), it allows further optimisation.
+
+The X86ISelLowering does this in the c'tor:
+    // Support carry in as value rather than glue.
+    setOperationAction(ISD::ADDCARRY, VT, Custom);
+    setOperationAction(ISD::SUBCARRY, VT, Custom);
+    setOperationAction(ISD::SETCCCARRY, VT, Custom); 
+
+LowerOperation(...)
+...
+  case ISD::SUBCARRY:           return LowerADDSUBCARRY(Op, DAG); 
+...
+
+LowerADDSUBCARRY(...)
+...
+  // Set the carry flag.
+  SDValue Carry = Op.getOperand(2);
+  EVT CarryVT = Carry.getValueType();
+  APInt NegOne = APInt::getAllOnesValue(CarryVT.getScalarSizeInBits());
+  Carry = DAG.getNode(X86ISD::ADD, DL, DAG.getVTList(CarryVT, MVT::i32),
+                      Carry, DAG.getConstant(NegOne, DL, CarryVT));
+
+  unsigned Opc = Op.getOpcode() == ISD::ADDCARRY ? X86ISD::ADC : X86ISD::SBB;
+  SDValue Sum = DAG.getNode(Opc, DL, VTs, Op.getOperand(0),
+                            Op.getOperand(1), Carry.getValue(1));
+
+  SDValue SetCC = getSETCC(X86::COND_B, Sum.getValue(1), DL, DAG);
+  if (N->getValueType(1) == MVT::i1)
+    SetCC = DAG.getNode(ISD::TRUNCATE, DL, MVT::i1, SetCC); 
+...

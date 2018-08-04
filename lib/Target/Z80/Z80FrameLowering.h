@@ -36,38 +36,38 @@ public:
   /// the function.
   void emitPrologue(MachineFunction &MF, MachineBasicBlock &MBB) const override;
   void emitEpilogue(MachineFunction &MF, MachineBasicBlock &MBB) const override;
-
-  bool assignCalleeSavedSpillSlots(
-    MachineFunction &MF, const TargetRegisterInfo *TRI,
-    std::vector<CalleeSavedInfo> &CSI) const override;
-  bool spillCalleeSavedRegisters(MachineBasicBlock &MBB,
-                                 MachineBasicBlock::iterator MI,
-                                 const std::vector<CalleeSavedInfo> &CSI,
-                                 const TargetRegisterInfo *TRI) const override;
-  bool restoreCalleeSavedRegisters(MachineBasicBlock &MBB,
-                                   MachineBasicBlock::iterator MI,
-                                   std::vector<CalleeSavedInfo> &CSI,
-                                   const TargetRegisterInfo *TRI) const override;
-
-  void processFunctionBeforeFrameFinalized(
-    MachineFunction &MF, RegScavenger *RS = nullptr) const override;
-
-  MachineBasicBlock::iterator eliminateCallFramePseudoInstr(
-    MachineFunction &MF, MachineBasicBlock &MBB,
-    MachineBasicBlock::iterator MI) const override;
-
+//
+//  bool assignCalleeSavedSpillSlots(
+//    MachineFunction &MF, const TargetRegisterInfo *TRI,
+//    std::vector<CalleeSavedInfo> &CSI) const override;
+//  bool spillCalleeSavedRegisters(MachineBasicBlock &MBB,
+//                                 MachineBasicBlock::iterator MI,
+//                                 const std::vector<CalleeSavedInfo> &CSI,
+//                                 const TargetRegisterInfo *TRI) const override;
+//  bool restoreCalleeSavedRegisters(MachineBasicBlock &MBB,
+//                                   MachineBasicBlock::iterator MI,
+//                                   std::vector<CalleeSavedInfo> &CSI,
+//                                   const TargetRegisterInfo *TRI) const override;
+//
+//  void processFunctionBeforeFrameFinalized(
+//    MachineFunction &MF, RegScavenger *RS = nullptr) const override;
+//
+//  MachineBasicBlock::iterator eliminateCallFramePseudoInstr(
+//    MachineFunction &MF, MachineBasicBlock &MBB,
+//    MachineBasicBlock::iterator MI) const override;
+//
   bool hasFP(const MachineFunction &MF) const override;
-
-private:
-  void BuildStackAdjustment(MachineFunction &MF, MachineBasicBlock &MBB,
-                            MachineBasicBlock::iterator MBBI, DebugLoc DL,
-                            unsigned ScratchReg, int Offset,
-                            int FPOffset = -1,
-                            bool UnknownOffset = false) const;
-
-  void shadowCalleeSavedRegisters(
-    MachineBasicBlock &MBB, MachineBasicBlock::iterator MI, DebugLoc DL,
-    MachineInstr::MIFlag Flag, const std::vector<CalleeSavedInfo> &CSI) const;
+//
+//private:
+//  void BuildStackAdjustment(MachineFunction &MF, MachineBasicBlock &MBB,
+//                            MachineBasicBlock::iterator MBBI, DebugLoc DL,
+//                            unsigned ScratchReg, int Offset,
+//                            int FPOffset = -1,
+//                            bool UnknownOffset = false) const;
+//
+//  void shadowCalleeSavedRegisters(
+//    MachineBasicBlock &MBB, MachineBasicBlock::iterator MI, DebugLoc DL,
+//    MachineInstr::MIFlag Flag, const std::vector<CalleeSavedInfo> &CSI) const;
 };
 } // End llvm namespace
 

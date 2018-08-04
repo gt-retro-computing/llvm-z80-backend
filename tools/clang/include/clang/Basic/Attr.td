@@ -308,6 +308,7 @@ def TargetMips32 : TargetArch<["mips", "mipsel"]>;
 def TargetAnyMips : TargetArch<["mips", "mipsel", "mips64", "mips64el"]>;
 def TargetMSP430 : TargetArch<["msp430"]>;
 def TargetAnyZ80 : TargetArch<["z80"]>;
+def TargetAnyZ80old : TargetArch<["z80old"]>;
 def TargetX86 : TargetArch<["x86"]>;
 def TargetAnyX86 : TargetArch<["x86", "x86_64"]>;
 def TargetWindows : TargetArch<["x86", "x86_64", "arm", "thumb", "aarch64"]> {
@@ -2150,6 +2151,21 @@ def X86ForceAlignArgPointer : InheritableAttr, TargetSpecificAttr<TargetAnyX86> 
 }
 
 def AnyZ80Interrupt : InheritableAttr, TargetSpecificAttr<TargetAnyZ80> {
+  // NOTE: If you add any additional spellings, ARMInterrupt's,
+  // MSP430Interrupt's, MipsInterrupt's, and AnyX86Interrupt's spellings must
+  // match.
+  let Spellings = [GCC<"interrupt">];
+  let Subjects = SubjectList<[Function]>;
+  let Args = [EnumArgument<"Interrupt", "InterruptType",
+                           ["", "nested", "nmi"],
+                           ["Generic", "Nested", "NMI"],
+                           1>];
+  let ParseKind = "Interrupt";
+  let HasCustomParsing = 1;
+  let Documentation = [Undocumented];
+}
+
+def AnyZ80oldInterrupt : InheritableAttr, TargetSpecificAttr<TargetAnyZ80old> {
   // NOTE: If you add any additional spellings, ARMInterrupt's,
   // MSP430Interrupt's, MipsInterrupt's, and AnyX86Interrupt's spellings must
   // match.

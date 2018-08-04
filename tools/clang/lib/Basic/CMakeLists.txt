@@ -92,6 +92,7 @@ add_clang_library(clangBasic
   Targets/X86.cpp
   Targets/XCore.cpp
   Targets/Z80.cpp
+  Targets/Z80old.cpp
   TokenKinds.cpp
   Version.cpp
   VirtualFileSystem.cpp

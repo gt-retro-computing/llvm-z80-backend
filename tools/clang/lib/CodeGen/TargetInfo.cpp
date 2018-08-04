@@ -9047,6 +9047,83 @@ void Z80TargetCodeGenInfo::setTargetAttributes(
 }
 
 //===----------------------------------------------------------------------===//
+// Z80old ABI Implementation
+//===----------------------------------------------------------------------===//
+
+namespace {
+
+class Z80oldABIInfo : public DefaultABIInfo {
+public:
+  Z80oldABIInfo(CodeGenTypes &CGT) : DefaultABIInfo(CGT) {}
+
+private:
+  void removeExtend(ABIArgInfo &AI) const {
+    if (AI.isExtend()) {
+      bool InReg = AI.getInReg();
+      AI = ABIArgInfo::getDirect(AI.getCoerceToType());
+      AI.setInReg(InReg);
+    }
+  }
+  // DefaultABIInfo's classifyReturnType and classifyArgumentType are
+  // non-virtual, but computeInfo and EmitVAArg are virtual, so we
+  // overload them.
+  void computeInfo(CGFunctionInfo &FI) const override {
+    if (!getCXXABI().classifyReturnType(FI))
+      FI.getReturnInfo() = classifyReturnType(FI.getReturnType());
+    removeExtend(FI.getReturnInfo());
+    for (auto &Arg : FI.arguments())
+      removeExtend(Arg.info = classifyArgumentType(Arg.type));
+  }
+
+  Address EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
+                    QualType Ty) const override;
+};
+
+class Z80oldTargetCodeGenInfo : public TargetCodeGenInfo {
+public:
+  Z80oldTargetCodeGenInfo(CodeGen::CodeGenTypes &CGT)
+    : TargetCodeGenInfo(new Z80oldABIInfo(CGT)) {}
+  void setTargetAttributes(const Decl *D, llvm::GlobalValue *GV,
+                           CodeGen::CodeGenModule &CGM) const override;
+};
+
+}
+
+Address Z80oldABIInfo::EmitVAArg(CodeGenFunction &CGF,
+                              Address VAListAddr, QualType Ty) const {
+  Address Addr =
+    emitVoidPtrVAArg(CGF, VAListAddr, Ty, /*Indirect*/ false,
+                     getContext().getTypeInfoInChars(Ty),
+                     CharUnits::fromQuantity(getDataLayout().getPointerSize()),
+                     /*AllowHigherAlign*/ false);
+  // Remove SlotSize over-alignment, since stack is never aligned.
+  return Address(Addr.getPointer(), CharUnits::fromQuantity(1));
+}
+
+void Z80oldTargetCodeGenInfo::setTargetAttributes(
+    const Decl *D, llvm::GlobalValue *GV, CodeGen::CodeGenModule &CGM) const {
+  if (GV->isDeclaration())
+    return;
+  const FunctionDecl *FD = dyn_cast_or_null<FunctionDecl>(D);
+  if (!FD) return;
+
+  const AnyZ80oldInterruptAttr *Attr = FD->getAttr<AnyZ80oldInterruptAttr>();
+  if (!Attr)
+    return;
+
+  const char *Kind;
+  switch (Attr->getInterrupt()) {
+  case AnyZ80oldInterruptAttr::Generic: Kind = "Generic"; break;
+  case AnyZ80oldInterruptAttr::Nested:  Kind = "Nested"; break;
+  case AnyZ80oldInterruptAttr::NMI:     Kind = "NMI"; break;
+  }
+
+  llvm::Function *Fn = cast<llvm::Function>(GV);
+  Fn->setCallingConv(llvm::CallingConv::PreserveAll);
+  Fn->addFnAttr("interrupt", Kind);
+}
+
+//===----------------------------------------------------------------------===//
 // Driver code
 //===----------------------------------------------------------------------===//
 

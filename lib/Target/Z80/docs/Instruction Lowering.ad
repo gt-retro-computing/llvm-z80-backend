@@ -27,6 +27,24 @@ Vectorization::
 Tail call elimination::
   If a stack frame needs to be cleared at function exit, or another function is called as the last statement of a function before returning to the caller (which is not necessarily the last instruction in a function), 'jumping' to that routine instead of making a standard call sequence, and returning to the function's caller (instead of the function itself) is called tail call elimination -> 'jp' instead of 'call + ret'.
 
+CSE (Common Subexpression Elimination)::
+  Precomputing multiple uses of the same computation in a sequence and using that result instead, e.g.
+
+  a = b * c + g;
+  d = b * c * e;
+
+  to
+
+  tmp = b * c;
+  a = tmp + g;
+  d = tmp * e;
+
+Hoisting::
+  Moving a computation inside a loop into a temporary or memory outside the loop to recude the execution cost in the loop.
+
+Folding::
+  TBD
+
 == Instructions
 === Load immediate imm8 -> r8 - Z80ISD::L8RI
 

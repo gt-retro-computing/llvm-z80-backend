@@ -366,6 +366,7 @@ std::string tools::getCPUName(const ArgList &Args, const llvm::Triple &T,
     return getWebAssemblyTargetCPU(Args);
 
   case llvm::Triple::z80:
+  case llvm::Triple::z80old:
     return getZ80TargetCPU(Args, T);
   }
 }

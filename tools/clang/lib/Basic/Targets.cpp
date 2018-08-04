@@ -38,6 +38,7 @@
 #include "Targets/X86.h"
 #include "Targets/XCore.h"
 #include "Targets/Z80.h"
+#include "Targets/Z80old.h"
 #include "clang/Basic/Diagnostic.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/Triple.h"
@@ -582,6 +583,8 @@ TargetInfo *AllocateTarget(const llvm::Triple &Triple,
     return new WebAssemblyOSTargetInfo<WebAssembly64TargetInfo>(Triple, Opts);
   case llvm::Triple::z80:
     return new Z80TargetInfo(Triple);
+  case llvm::Triple::z80old:
+    return new Z80oldTargetInfo(Triple);
   case llvm::Triple::renderscript32:
     return new LinuxTargetInfo<RenderScript32TargetInfo>(Triple, Opts);
   case llvm::Triple::renderscript64:
