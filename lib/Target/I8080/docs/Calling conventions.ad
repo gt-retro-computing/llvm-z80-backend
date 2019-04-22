@@ -1,0 +1,269 @@
+= ABI Description
+Michael Stellmann <michael.stellmann@gmx.net>
+v0.1, July 2018
+
+:numbered:
+== Introduction
+
+This document describes the ABI (application binary interface) and calling conventions used by the LLVM backend for the I8080.
+
+Line 1 +
+Line 2
+
+== Calling conventions
+
+=== Typical calling conventions
+==== Caller clean-up
+- cdecl
+- syscall
+- optlink
+
+==== Callee clean-up
+- pascal
+- stdcall
+- fastcall
+
+==== Caller or callee clean-up
+- thiscall
+
+=== Parameter passing
+
+IAR / HITECH-C:
+[width="75%",options="header"]
+|=======
+2+^|1 2+^|2 2+|Remaining parameters
+|8-bit +
+E| 16-bit +
+DE| 8-bit +
+C| 16-bit +
+BC 2+|Pushed on stack
+2+|Long +
+BCDE 2+|Pushed on stack 2+|Pushed on stack
+2+|Vararg +
+Pushed on stack 2+|Pushed on stack 2+|Pushed on stack
+|=======
+
+ACSII-C:
+[options="header"]
+|=======
+2+^|1 2+^|2 2+^|3 2+|Remaining parameters
+|8-bit +
+A| 16-bit +
+HL| 8-bit +
+E| 16-bit +
+DE| 8-bit +
+C| 16-bit +
+BC 2+|Pushed on stack
+2+|Vararg +
+Pushed on stack 2+|Pushed on stack 2+|Pushed on stack 2+|Pushed on stack
+|=======
+
+=== Return values
+
+IAR (HITECH-C?):
+[width="25%",options="header"]
+|=======
+|Parameter Type|Register
+|8-bit|A
+|16-bit|HL
+|32-bit|BCHL
+|=======
+
+ASCII-C:
+[width="25%",options="header"]
+|=======
+|Parameter Type|Register
+|8-bit|A
+|16-bit|HL
+|=======
+
+
+== Stack Frame Setup
+
+[width="33%",cols="^"]
+|=======
+|Function call parameters ^1^
+|Return address
+|Saved registers
+|Location of first parameter ^2^
+|Auto variables
+|Temporary storage
+|=======
+
+^1^ Only for funcs with more than 2 parameters or vararg
+
+^2^ Only for functions setting up a stack frame (funcs with more than 2 parameters or vararg #and# locals on the stack).
+
+
+== Function Prologue / Epilogue
+
+=== IAR (Debug)
+==== Function
+----
+	call	?ENT_AUTO_DIRECT_L09
+	defw	-<auto-variables-size>
+... function body
+	jp	?LEAVE_DIRECT_L09
+----
+
+==== Stack Frame Access
+
+IX + 0 / +1 = caller's address (=return address)
+
+Param access: IX + n
+
+- #1 - IX + 2 / +1
+- #2 - IX + 4 / +1
+- #n - IX + n*2 / +1
+
+Auto vars access: IX - n
+
+- params within IX-n range (-1 - -128):
+
+	; 6 bytes, 42 cycles
+	ld	c,(ix-n)
+	ld	b,(ix-n+1)
+
+- params outside range: SP + HL
+
+	; 7 bytes, 40 cycles
+	ld	hl,offset
+	add	hl,sp
+	ld	c,(hl)...
+	inc	hl
+	ld	c,(hl)...
+
+==== Prologue
+
+Without auto variables
+----
+?ENT_PARM_DIRECT_L09 ; 14 bytes, 96 cycles
+	pop	hl	; return address (to function entry)
+	push	bc	; save param to stack (IX+4/5)
+	push	de	; save param to stack (IX+2/3)
+	push	ix
+	ld	ix,0
+	add	ix,sp
+	jp	(hl)
+----
+
+With auto variables
+----
+?ENT_AUTO_DIRECT_L09 ; 22 bytes, 149 cycles
+	pop	hl	; return address (to function entry)
+	push	bc	; save param to stack (IX+4/5)
+	push	de	; save param to stack (IX+2/3)
+	push	ix
+	ld	ix,0
+	add	ix,sp
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc hl
+	ex	de,hl
+	add	hl,sp
+	ld	sp,hl
+	ex	de,hl
+	jp	(hl)
+----
+
+
+==== Epilogue
+----
+?LEAVE_DIRECT_L09:	; 7 bytes, 61 cyc - must be jumped to
+	ld	sp,ix
+	pop	ix
+	pop	de
+	pop	bc
+	ret
+----
+
+=== IAR (Release)
+==== Function
+----
+	<prologue>
+... function body
+	<epilogue>
+----
+
+==== Stack Frame Access
+
+Param and auto vars access: SP + HL
+
+	; 7 bytes, 40 cycles
+	ld	hl,offset	; (from current(!) SP)
+	add	hl,sp
+	ld	(hl)...
+	inc	hl
+	ld	(hl)...
+
+For multiple vars in one (larger) C instruction:
+
+1. Addresses are prepared:
+
+	ld	hl,offset
+	add	hl,sp
+	push	hl*	; repeated for each var required in the next operation
+
+2. Registers are loaded
+
+	ld	c,(hl)
+	inc	hl
+	ld	b,(hl)
+	pop	hl*	; repeated for each var in the operation
+
+
+==== Prologue
+
+Push all registers that are used inside the function and considered 'not destroyed'.
+
+- 0 params: DE + BC + IX + IY
+- 1 param: BC + IX + IY
+- 2+ params: IX + IY
+
+----
+	push	rr*	; repeat for all physical registers changed in this function
+
+	; SP is remembered here (compiler-internally)
+	ld	hl,-<auto-variables-size>
+	add	hl,sp
+	ld	sp,hl
+----
+
+==== Epilogue
+----
+	ld	hl,<remembered SP - current SP>
+	add	hl,sp
+	ld	sp,hl
+
+	pop	rr*	; repeat for all physical registers that were pushed in the prologue
+
+	ret
+----
+
+== Spilling conventions (proposal for an 'auto-static' attribute)
+
+Storing and restoring a variable on the stack is both time-intensive and increases code size,
+as opposed to a fixed memory location.
+
+Generally, compilers force all static locals to reside in memory and non-static locals on either the
+stack or nowhere (if they live short enough that they can reside in a register, e.g. for a calculation).
+
+Thus, choosing 'static' for locals to minimize code size and get a speed performance for
+storing / restoring may have the opposite effect in a situation where spilling can be eliminated for a
+certain variable in a certain case by the compiler's optimizer. However, a developer doesn't know this
+in advance if a local is going to be spilled or not, so choosing 'static' is trial-and-error, and
+while it may be a good choice now, it may be wrong when the code changes.
+
+The ASCII-C compiler has a hybrid-mode, which has the best of both worlds:
+
+When 'pragma nonrec' is specified, all locals that cannot be eliminated will be spilled to a
+fixed memory slot, as with the 'static' keyword.
+Locals that can be eliminated will be treated as non-static i.e. no 'fixed memory spill slot'
+will be created for them, saving the cost of storing / restoring them from any memory at all.
+
+We should consider creating an attribute that allows a developer to mark a function as non-recursive
+to allow all locals to be 'auto-static' and the optimization to be performed.
+
+'auto-static' means that a local is treated as 'non-static' as long as it doesn't need to be spilled,
+in which case it becomes 'static' automatically.

@@ -20,6 +20,7 @@
 #include "Targets/AVR.h"
 #include "Targets/BPF.h"
 #include "Targets/Hexagon.h"
+#include "Targets/I8080.h"
 #include "Targets/Lanai.h"
 #include "Targets/Le64.h"
 #include "Targets/MSP430.h"
@@ -585,6 +586,8 @@ TargetInfo *AllocateTarget(const llvm::Triple &Triple,
     return new Z80TargetInfo(Triple);
   case llvm::Triple::z80old:
     return new Z80oldTargetInfo(Triple);
+  case llvm::Triple::i8080:
+    return new I8080TargetInfo(Triple);
   case llvm::Triple::renderscript32:
     return new LinuxTargetInfo<RenderScript32TargetInfo>(Triple, Opts);
   case llvm::Triple::renderscript64:

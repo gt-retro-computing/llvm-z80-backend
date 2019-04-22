@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "Z80TargetStreamer.h"
+#include "I8080TargetStreamer.h"
 #include "llvm/MC/MCContext.h"
 #include "llvm/Support/FormattedStream.h"
 

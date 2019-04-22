@@ -1,0 +1,67 @@
+= Optimizations
+
+== Re-use known (static) register values to initialize other registers
+
+Replace
+
+	ld	hl,0
+	ld	de,0
+
+with
+
+	ld	hl,0
+	ld	d,h
+	ld	e,l
+
+== Write immediates directly to stack place
+
+Replace
+
+	ld	hl,0
+	ld	(ix+n  ),l
+	ld	(ix+n+1),h
+
+with (prio 1, any other reg contains the immediate value, e.g. h)
+
+	ld	(ix+n  ),h
+	ld	(ix+n+1),h
+
+with (prio 2, no other reg with that value exists)
+
+	ld	(ix+n  ),0
+	ld	(ix+n+1),0
+
+== Stack initialization
+
+Replace strack frame setup
+
+	ld	hl,nnnn
+	add	hl,sp
+	ld	sp,hl
+
+	; and stack initialization
+
+	ld	de,1234
+	ld	hl,nnnn
+	add	hl,sp
+	ld	(hl),...
+	inc 	hl
+	ld	(hl),...
+
+	; or
+
+	ld	(ix+n),...
+
+	; or
+	
+	push	<any-reg>	; repeat nnnn/2 times
+
+with building up the stack step by step (if possible)
+
+	ld	de,1234	; initialized param
+	push	de
+
+	push	de	; uninitialized param
+
+	ld	de,4567	; initialized param
+	push	de

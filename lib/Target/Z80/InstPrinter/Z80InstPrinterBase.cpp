@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "Z80InstPrinterBase.h"
+#include "I8080InstPrinterBase.h"
 #include "Z80InstPrinter.h"
 #include "llvm/MC/MCExpr.h"
 #include "llvm/MC/MCInst.h"

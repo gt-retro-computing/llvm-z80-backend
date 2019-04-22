@@ -1,0 +1,4 @@
+- Optimize loading of two 8 bit constants into a register pair:
+
+  ld l,n   ->   ld hl,mn
+  ld h,m

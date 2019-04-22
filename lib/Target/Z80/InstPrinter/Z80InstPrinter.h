@@ -14,7 +14,7 @@
 #ifndef LLVM_LIB_TARGET_Z80_INSTPRINTER_Z80INSTPRINTER_H
 #define LLVM_LIB_TARGET_Z80_INSTPRINTER_Z80INSTPRINTER_H
 
-#include "Z80InstPrinterBase.h"
+#include "I8080InstPrinterBase.h"
 
 namespace llvm {
 class Z80InstPrinter final : public Z80InstPrinterBase {

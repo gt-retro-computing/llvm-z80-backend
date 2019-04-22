@@ -96,6 +96,7 @@ public:
     wasm64,         // WebAssembly with 64-bit pointers
     z80,            // Z80
     z80old,         // Z80 (old reference version)
+    i8080,          // Intel 8080
     renderscript32, // 32-bit RenderScript
     renderscript64, // 64-bit RenderScript
     LastArchType = renderscript64

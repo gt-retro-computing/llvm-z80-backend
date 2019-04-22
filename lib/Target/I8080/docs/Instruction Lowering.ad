@@ -1,0 +1,113 @@
+= Instruction Lowering
+Michael Stellmann <michael.stellmann@gmx.net>
+v0.1, July 2018
+
+:numbered:
+== Glossary
+Defs / Uses::
+  Defs: List of registers, ... which are modified or created by the instruction (=output) +
+  Uses: List of registers, ... which are required by the instruction (=input)
+
+Scavenging (register)::
+  Can provide information such as unused register at any point in a machine basic block.
+  It also provides a mechanism to make registers available by evicting them
+  to spill slots. (from: RegisterScavenging.h)
+
+Rematerialization (IsRematerializable)::
+  Optimization to save computing time by recomputing a value instead of loading it from memory.
+
+runOnFunction (pass)::
+  Inheritance is as follows: +
+  Pass -> FunctionPass -> MachineFunctionPass -> SelectionDAGISel -> xxxDAGToDAGISel. +
+  The function "runOnFunction(Function &F)" is used to run the pass, which calls runOnMachineFunction(MF).
+
+Vectorization::
+  Parallelization of loops via instructions working on multiple variables at once.
+
+Tail call elimination::
+  If a stack frame needs to be cleared at function exit, or another function is called as the last statement of a function before returning to the caller (which is not necessarily the last instruction in a function), 'jumping' to that routine instead of making a standard call sequence, and returning to the function's caller (instead of the function itself) is called tail call elimination -> 'jp' instead of 'call + ret'.
+
+== Instructions
+=== Load immediate imm8 -> r8 - I8080ISD::L8RI
+
+[horizontal]
+*r8*:: A, H, L, B, C, D, E
+
+[float]
+==== Emitted code
+
+	LD	r8,imm8
+
+=== Load immediate imm16 -> r16 - I8080ISD::L16RI
+
+[horizontal]
+*r16*:: HL, DE, BC
+*r8*:: A, H, L, B, C, D, E
+
+[float]
+==== Emitted code
+
+	LD	r16,imm16
+
+=== Zero-extend r8 / imm8 -> r16 - ISD::ZEXT
+[horizontal]
+*r16*:: HL, BC, DE
+
+[float]
+==== Emitted code
+
+	LD	R16l,r8 / imm8
+	LD	R16h,0
+
+=== A=B (both on stack)
+
+[float]
+==== Emitted code
+
+s = src, d = dst
+
+Debug, 8 Bit:
+
+	LD	B,(IX+s)
+	LD	(IX+d),B
+
+Debug, 16 Bit:
+
+	LD	C,(IX+s)
+	LD	B,(IX+m+1)
+
+	LD	(IX+d),C
+	LD	(IX+d+1),B
+
+Release, 8 Bit:
+
+	LD	HL,s
+	ADD	HL,SP
+	PUSH	HL
+	LD	HL,d
+	ADD	HL,SP
+	LD	C,(HL)
+
+	POP	HL
+	LD	(HL),B
+
+Release, 16 Bit:
+
+	LD	HL,s
+	ADD	HL,SP
+	PUSH	HL
+	LD	HL,d
+	ADD	HL,SP
+	LD	C,(HL)
+	INC	HL
+	LD	B,(HL)
+
+	POP	HL
+	LD	(HL),B
+	INC	HL
+	LD	(HL),B
+
+
+
+== Questions
+- How to check if any other physical register has a specific immediate value when we insert an instruction?

@@ -1,4 +1,4 @@
 add_llvm_library(LLVMZ80AsmPrinter
-  Z80InstPrinter.cpp
+        I8080InstPrinter.cpp
   Z80InstPrinterBase.cpp
   )

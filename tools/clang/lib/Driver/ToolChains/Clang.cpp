@@ -516,6 +516,7 @@ static bool useFramePointerForTargetByDefault(const ArgList &Args,
   case llvm::Triple::wasm64:
   case llvm::Triple::z80:
   case llvm::Triple::z80old:
+  case llvm::Triple::i8080:
     // XCore never wants frame pointers, regardless of OS.
     // WebAssembly never wants frame pointers.
     return false;
@@ -1304,6 +1305,7 @@ static bool isNoCommonDefault(const llvm::Triple &Triple) {
   case llvm::Triple::wasm64:
   case llvm::Triple::z80:
   case llvm::Triple::z80old:
+  case llvm::Triple::i8080:
     return true;
   }
 }

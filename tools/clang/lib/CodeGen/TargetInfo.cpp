@@ -9124,6 +9124,83 @@ void Z80oldTargetCodeGenInfo::setTargetAttributes(
 }
 
 //===----------------------------------------------------------------------===//
+// I8080 ABI Implementation
+//===----------------------------------------------------------------------===//
+
+namespace {
+
+    class I8080ABIInfo : public DefaultABIInfo {
+    public:
+        I8080ABIInfo(CodeGenTypes &CGT) : DefaultABIInfo(CGT) {}
+
+    private:
+        void removeExtend(ABIArgInfo &AI) const {
+            if (AI.isExtend()) {
+                bool InReg = AI.getInReg();
+                AI = ABIArgInfo::getDirect(AI.getCoerceToType());
+                AI.setInReg(InReg);
+            }
+        }
+        // DefaultABIInfo's classifyReturnType and classifyArgumentType are
+        // non-virtual, but computeInfo and EmitVAArg are virtual, so we
+        // overload them.
+        void computeInfo(CGFunctionInfo &FI) const override {
+            if (!getCXXABI().classifyReturnType(FI))
+                FI.getReturnInfo() = classifyReturnType(FI.getReturnType());
+            removeExtend(FI.getReturnInfo());
+            for (auto &Arg : FI.arguments())
+                removeExtend(Arg.info = classifyArgumentType(Arg.type));
+        }
+
+        Address EmitVAArg(CodeGenFunction &CGF, Address VAListAddr,
+                          QualType Ty) const override;
+    };
+
+    class I8080TargetCodeGenInfo : public TargetCodeGenInfo {
+    public:
+        I8080TargetCodeGenInfo(CodeGen::CodeGenTypes &CGT)
+                : TargetCodeGenInfo(new I8080ABIInfo(CGT)) {}
+        void setTargetAttributes(const Decl *D, llvm::GlobalValue *GV,
+                                 CodeGen::CodeGenModule &CGM) const override;
+    };
+
+}
+
+Address I8080ABIInfo::EmitVAArg(CodeGenFunction &CGF,
+                              Address VAListAddr, QualType Ty) const {
+    Address Addr =
+            emitVoidPtrVAArg(CGF, VAListAddr, Ty, /*Indirect*/ false,
+                             getContext().getTypeInfoInChars(Ty),
+                             CharUnits::fromQuantity(getDataLayout().getPointerSize()),
+                    /*AllowHigherAlign*/ false);
+    // Remove SlotSize over-alignment, since stack is never aligned.
+    return Address(Addr.getPointer(), CharUnits::fromQuantity(1));
+}
+
+void I8080TargetCodeGenInfo::setTargetAttributes(
+        const Decl *D, llvm::GlobalValue *GV, CodeGen::CodeGenModule &CGM) const {
+    if (GV->isDeclaration())
+        return;
+    const FunctionDecl *FD = dyn_cast_or_null<FunctionDecl>(D);
+    if (!FD) return;
+
+    const AnyI8080InterruptAttr *Attr = FD->getAttr<AnyI8080InterruptAttr>();
+    if (!Attr)
+        return;
+
+    const char *Kind;
+    switch (Attr->getInterrupt()) {
+        case AnyI8080InterruptAttr::Generic: Kind = "Generic"; break;
+        case AnyI8080InterruptAttr::Nested:  Kind = "Nested"; break;
+        case AnyI8080InterruptAttr::NMI:     Kind = "NMI"; break;
+    }
+
+    llvm::Function *Fn = cast<llvm::Function>(GV);
+    Fn->setCallingConv(llvm::CallingConv::PreserveAll);
+    Fn->addFnAttr("interrupt", Kind);
+}
+
+//===----------------------------------------------------------------------===//
 // Driver code
 //===----------------------------------------------------------------------===//
 

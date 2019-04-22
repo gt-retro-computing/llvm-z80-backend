@@ -367,6 +367,7 @@ std::string tools::getCPUName(const ArgList &Args, const llvm::Triple &T,
 
   case llvm::Triple::z80:
   case llvm::Triple::z80old:
+  case llvm::Triple::i8080:
     return getZ80TargetCPU(Args, T);
   }
 }

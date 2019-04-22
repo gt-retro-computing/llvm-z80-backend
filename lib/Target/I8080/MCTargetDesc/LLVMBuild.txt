@@ -1,0 +1,27 @@
+;===- ./lib/Target/I8080/MCTargetDesc/LLVMBuild.txt -------------*- Conf -*--===;
+;
+;                     The LLVM Compiler Infrastructure
+;
+; This file is distributed under the University of Illinois Open Source
+; License. See LICENSE.TXT for details.
+;
+;===------------------------------------------------------------------------===;
+;
+; This is an LLVMBuild description file for the components in this subdirectory.
+;
+; For more information on the LLVMBuild system, please see:
+;
+;   http://llvm.org/docs/LLVMBuild.html
+;
+;===------------------------------------------------------------------------===;
+
+[component_0]
+type = Library
+name = I8080Desc
+parent = I8080
+required_libraries = MC 
+                     I8080Info
+                     Support
+                     I8080AsmPrinter
+add_to_library_groups = I8080
+

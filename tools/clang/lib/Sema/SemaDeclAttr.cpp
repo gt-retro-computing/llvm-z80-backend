@@ -5388,6 +5388,67 @@ static void handleAnyZ80oldInterruptAttr(Sema &S, Decl *D,
       AL.getLoc(), S.Context, Kind, AL.getAttributeSpellingListIndex()));
 }
 
+static void handleAnyI8080InterruptAttr(Sema &S, Decl *D,
+                                      const AttributeList &AL) {
+    // Only one optional argument permitted.
+    if (AL.getNumArgs() > 1) {
+        S.Diag(AL.getLoc(), diag::err_attribute_too_many_arguments)
+                << AL.getName() << 1;
+        return;
+    }
+
+    StringRef Str;
+    SourceLocation ArgLoc;
+
+    if (AL.getNumArgs() == 0)
+        Str = "";
+    else if (!S.checkStringLiteralArgumentAttr(AL, 0, Str, &ArgLoc))
+        return;
+
+    // Semantic checks for a function with the 'interrupt' attribute.
+    // a) Must be a function.
+    // b) Must have the 'void' return type.
+    // c) Must take no arguments.
+    // d) The attribute itself must either have no argument or one of the
+    //    valid interrupt types.
+    if (!isFunctionOrMethod(D) || !hasFunctionProto(D) || isInstanceMethod(D) ||
+        CXXMethodDecl::isStaticOverloadedOperator(
+                cast<NamedDecl>(D)->getDeclName().getCXXOverloadedOperator())) {
+        S.Diag(AL.getLoc(), diag::warn_attribute_wrong_decl_type)
+                << AL.getName() << ExpectedFunctionWithProtoType;
+        return;
+    }
+    // Interrupt handler must have void return type.
+    if (!getFunctionOrMethodResultType(D)->isVoidType()) {
+        S.Diag(getFunctionOrMethodResultSourceRange(D).getBegin(),
+               diag::err_anyi8080_interrupt_attribute)
+                << (S.Context.getTargetInfo().getTriple().getArch() == llvm::Triple::i8080
+                    ? 0
+                    : 1)
+                << 0;
+        return;
+    }
+    // Interrupt handler must have no parameters.
+    if (getFunctionOrMethodNumParams(D) != 0) {
+        S.Diag(D->getLocStart(), diag::err_anyi8080_interrupt_attribute)
+                << (S.Context.getTargetInfo().getTriple().getArch() == llvm::Triple::i8080
+                    ? 0
+                    : 1)
+                << 1;
+        return;
+    }
+
+    AnyI8080InterruptAttr::InterruptType Kind;
+    if (!AnyI8080InterruptAttr::ConvertStrToInterruptType(Str, Kind)) {
+        S.Diag(AL.getLoc(), diag::warn_attribute_type_not_supported)
+                << AL.getName() << "'" + std::string(Str) + "'";
+        return;
+    }
+
+    D->addAttr(::new (S.Context) AnyI8080InterruptAttr(
+            AL.getLoc(), S.Context, Kind, AL.getAttributeSpellingListIndex()));
+}
+
 static void handleInterruptAttr(Sema &S, Decl *D, const AttributeList &AL) {
   // Dispatch the interrupt attribute based on the current target.
   switch (S.Context.getTargetInfo().getTriple().getArch()) {

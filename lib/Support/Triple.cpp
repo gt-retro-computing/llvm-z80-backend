@@ -73,6 +73,7 @@ StringRef Triple::getArchTypeName(ArchType Kind) {
   case renderscript64: return "renderscript64";
   case z80:            return "z80";
   case z80old:         return "z80old";
+  case i8080:          return "i8080";
   }
 
   llvm_unreachable("Invalid ArchType!");
@@ -151,6 +152,7 @@ StringRef Triple::getArchTypePrefix(ArchType Kind) {
 
   case z80:         return "z80";
   case z80old:      return "z80old";
+  case i8080:       return "i8080";
   }
 }
 
@@ -315,6 +317,7 @@ Triple::ArchType Triple::getArchTypeForLLVMName(StringRef Name) {
     .Case("renderscript64", renderscript64)
     .Case("z80", z80)
     .Case("z80old", z80old)
+    .Case("i8080", i8080)
     .Default(UnknownArch);
 }
 
@@ -440,6 +443,7 @@ static Triple::ArchType parseArch(StringRef ArchName) {
     .Case("renderscript64", Triple::renderscript64)
     .Case("z80", Triple::z80)
     .Case("z80old", Triple::z80old)
+    .Case("i8080", Triple::i8080)
     .Default(Triple::UnknownArch);
 
   // Some architectures require special parsing logic just to compute the
@@ -680,6 +684,7 @@ static Triple::ObjectFormatType getDefaultFormat(const Triple &T) {
   case Triple::xcore:
   case Triple::z80:
   case Triple::z80old:
+  case Triple::i8080:
     return Triple::ELF;
 
   case Triple::ppc:
@@ -1196,6 +1201,7 @@ static unsigned getArchPointerBitWidth(llvm::Triple::ArchType Arch) {
   case llvm::Triple::msp430:
   case llvm::Triple::z80:
   case llvm::Triple::z80old:
+  case llvm::Triple::i8080:
     return 16;
 
   case llvm::Triple::arc:
@@ -1278,6 +1284,7 @@ Triple Triple::get32BitArchVariant() const {
   case Triple::ppc64le:
   case Triple::z80:
   case Triple::z80old:
+  case Triple::i8080:
     T.setArch(UnknownArch);
     break;
 
@@ -1350,6 +1357,7 @@ Triple Triple::get64BitArchVariant() const {
   case Triple::shave:
   case Triple::z80:
   case Triple::z80old:
+  case Triple::i8080:
     T.setArch(UnknownArch);
     break;
 
@@ -1433,6 +1441,7 @@ Triple Triple::getBigEndianArchVariant() const {
   case Triple::renderscript64:
   case Triple::z80:
   case Triple::z80old:
+  case Triple::i8080:
 
   // ARM is intentionally unsupported here, changing the architecture would
   // drop any arch suffixes.
@@ -1526,6 +1535,7 @@ bool Triple::isLittleEndian() const {
   case Triple::renderscript64:
   case Triple::z80:
   case Triple::z80old:
+  case Triple::i8080:
     return true;
   default:
     return false;

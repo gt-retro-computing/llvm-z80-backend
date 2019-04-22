@@ -317,6 +317,7 @@ set(LLVM_ALL_TARGETS
   ARM
   BPF
   Hexagon
+  I8080
   Lanai
   Mips
   MSP430

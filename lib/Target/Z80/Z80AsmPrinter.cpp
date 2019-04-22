@@ -14,7 +14,7 @@
 
 #include "Z80AsmPrinter.h"
 #include "Z80.h"
-#include "MCTargetDesc/Z80TargetStreamer.h"
+#include "MCTargetDesc/I8080TargetStreamer.h"
 #include "llvm/Target/TargetLoweringObjectFile.h"
 #include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCStreamer.h"

@@ -228,6 +228,14 @@ namespace CallingConv {
     Z80_LibCall_C = 100,
     Z80_LibCall_L = 101,
 
+    /// Calling conventions used for special I8080 rtlib functions
+    /// which pass in registers and saves all registers.
+    I8080_LibCall = 102,
+    I8080_LibCall_AC = 103,
+    I8080_LibCall_BC = 104,
+    I8080_LibCall_C = 105,
+    I8080_LibCall_L = 106,
+
     /// The highest possible calling convention ID. Must be some 2^k - 1.
     MaxID = 1023
   };
